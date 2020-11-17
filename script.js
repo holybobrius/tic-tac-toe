@@ -12,11 +12,9 @@
         container.appendChild(cell);
     }
     startGameButton.onclick = function() {
-        console.log('test');
         popup.style.display = "block";
     }
     closePopup.onclick = function() {
-        console.log('test2');
         popup.style.display = "none";
     }
     window.onclick = function(event) {
@@ -25,31 +23,134 @@
         }
     }
     submit.onclick = function() {
-        console.log('submit');
         popup.style.display = "none";
         startGame();
     }
-    
 })();
 
+const player = (name, mark) => {
+    const getName = () => {
+        return name;
+    }
+    const getMark = () => {
+        return mark;
+    }
+    return { getName, getMark }
+};
+
 function startGame() {
+    const nameInput1 = document.querySelector('#nameInput1');
+    const nameInput2 = document.querySelector('#nameInput2');
+    const player1 = player(nameInput1.value, 'cross');
+    const player2 = player(nameInput2.value, 'circle');
     const cells = document.querySelectorAll('.cell');
+    const popup2 = document.querySelector('.popup2');
+    const resetButton = document.querySelector('#reset');
+    const winnerAnnounce = document.querySelector('.winner-announce');
+    const startGameButton = document.querySelector('#start-game');
     let counter = 0;
+    let gameWon = false;
+    let cellsArray = [];
+    cells.forEach(cell => {
+        cellsArray.push(cell);
+    })
+    startGameButton.disabled = true;
+    reset();
+    counter = 0;
+    function makeMove(mark) {
+        if(mark == 'cross') {
+            let icon = document.createElement('img');
+            icon.setAttribute("src", "images/cross.png");
+            icon.className = "icon";
+            return icon;
+        } else if(mark == 'circle') {
+            let icon = document.createElement('img');
+            icon.setAttribute("src", "images/circle.png");
+            icon.className = "icon";
+            return icon;
+        }
+    }
+
+    function checkForWin(mark) {
+        if (mark == 'cross') {
+            if(
+              (cellsArray[0].classList.contains("cross") && cellsArray[1].classList.contains("cross") && cellsArray[2].classList.contains("cross")) ||
+              (cellsArray[3].classList.contains("cross") && cellsArray[4].classList.contains("cross") && cellsArray[5].classList.contains("cross")) ||
+              (cellsArray[6].classList.contains("cross") && cellsArray[7].classList.contains("cross") && cellsArray[8].classList.contains("cross")) ||
+              (cellsArray[0].classList.contains("cross") && cellsArray[3].classList.contains("cross") && cellsArray[6].classList.contains("cross")) ||
+              (cellsArray[1].classList.contains("cross") && cellsArray[4].classList.contains("cross") && cellsArray[7].classList.contains("cross")) ||
+              (cellsArray[2].classList.contains("cross") && cellsArray[5].classList.contains("cross") && cellsArray[8].classList.contains("cross")) ||
+              (cellsArray[0].classList.contains("cross") && cellsArray[4].classList.contains("cross") && cellsArray[8].classList.contains("cross")) ||
+              (cellsArray[2].classList.contains("cross") && cellsArray[4].classList.contains("cross") && cellsArray[6].classList.contains("cross"))
+            ) {
+                announceWinner(player1);
+            }
+        } else if(mark=='circle') {
+            if(
+                (cellsArray[0].classList.contains("circle") && cellsArray[1].classList.contains("circle") && cellsArray[2].classList.contains("circle")) ||
+                (cellsArray[3].classList.contains("circle") && cellsArray[4].classList.contains("circle") && cellsArray[5].classList.contains("circle")) ||
+                (cellsArray[6].classList.contains("circle") && cellsArray[7].classList.contains("circle") && cellsArray[8].classList.contains("circle")) ||
+                (cellsArray[0].classList.contains("circle") && cellsArray[3].classList.contains("circle") && cellsArray[6].classList.contains("circle")) ||
+                (cellsArray[1].classList.contains("circle") && cellsArray[4].classList.contains("circle") && cellsArray[7].classList.contains("circle")) ||
+                (cellsArray[2].classList.contains("circle") && cellsArray[5].classList.contains("circle") && cellsArray[8].classList.contains("circle")) ||
+                (cellsArray[0].classList.contains("circle") && cellsArray[4].classList.contains("circle") && cellsArray[8].classList.contains("circle")) ||
+                (cellsArray[2].classList.contains("circle") && cellsArray[4].classList.contains("circle") && cellsArray[6].classList.contains("circle"))
+            ) {
+                announceWinner(player2);
+            }
+        }
+    }
+
+    function announceTie() {
+        popup2.style.display = "block";
+        winnerAnnounce.innerHTML = "TIE!"
+        gameWon = true;
+    }
+
+    function announceWinner(player) {
+        popup2.style.display = "block";
+        winnerAnnounce.innerHTML = player.getName() + " wins!";
+        gameWon = true;
+    }
+
+    function reset() {
+        popup2.style.display = "none";
+        cellsArray.forEach(cell => {
+            cell.classList.remove("marked");
+            cell.classList.remove("cross");
+            cell.classList.remove("circle");
+            cell.innerHTML = "";
+        })
+        cellsArray = [];
+        cells.forEach(cell => {
+            cellsArray.push(cell);
+        })
+        counter = 0;
+        gameWon = false;
+        return;
+    }
     cells.forEach(cell => {
         cell.addEventListener('click', () => {
-            if(counter % 2 == 0 && cell.innerHTML == "") {
-                let icon = document.createElement('img');
-                icon.setAttribute("src", "images/cross.png");
-                icon.className = "icon";
-                cell.appendChild(icon);
-            } else if (counter % 2 !== 0 && cell.innerHTML=="") {
-                let icon = document.createElement('img');
-                icon.setAttribute("src", "images/circle.png");
-                icon.className = "icon";
-                cell.appendChild(icon);
-                console.log(counter);
+            if(cell.innerHTML == "") {
+                if(counter % 2 == 0) {
+                    cell.appendChild(makeMove(player1.getMark()));
+                    cell.classList.add("cross");
+                    checkForWin(player1.getMark());
+                } else if (counter % 2 !== 0) {
+                    cell.appendChild(makeMove(player2.getMark()));
+                    cell.classList.add("circle");
+                    checkForWin(player2.getMark());         
+                }
+                cell.classList.add("marked");
+                counter++;
+                if(counter == 9 && (gameWon == false)) {
+                    announceTie();
+                }
             }
-            counter++;
         });
     });
+
+    resetButton.onclick = function () {
+        reset();
+    }
 }
